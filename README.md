@@ -96,3 +96,11 @@ namespace.register(my_cool_item)
 if __name__ == '__main__':
     pack.export('./my_datapack')
 ```
+
+
+## In The Future ...
+
+- [ ] Assets
+- [ ] Translations
+- [ ] More built-in event handlers
+- [ ] CLI improvement
