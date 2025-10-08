@@ -22,4 +22,8 @@ def handle_on_load() -> str:
     with CommandBuilder() as cmd:
         cmd.tellraw('Hello world from chanty datapack!')
     return cmd.build()
+
+
+# Export into folder
+pack.export('./my_datapack')
 ```
