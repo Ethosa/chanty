@@ -104,8 +104,24 @@ class CommandBuilder:
         self._add(f'time set {time}')
         return self
 
-    def tp(self, target: str, pos: AnyPos) -> CommandBuilder:
-        self._add(f'tp {target} {" ".join(pos)}')
+    def tp(
+            self,
+            target: str,
+            pos: AnyPos,
+            facing_entity: str | None = None,
+            facing: Literal['feet', 'eyes'] = 'eyes'
+    ) -> CommandBuilder:
+        if facing_entity:
+            self._add(f'tp {target} {" ".join(pos)} facing entity {facing_entity} {facing}')
+        else:
+            self._add(f'tp {target} {" ".join(pos)}')
+        return self
+
+    def rotate(self, target: str, pos: AnyPos | str) -> CommandBuilder:
+        if isinstance(pos, str):
+            self._add(f'rotate {target} facing {pos}')
+        else:
+            self._add(f'rotate {target} facing {" ".join(pos)}')
         return self
 
     def summon(self, entity: str, pos: AnyPos) -> CommandBuilder:
@@ -140,7 +156,9 @@ class CommandBuilder:
         at: str | None = None,
         if_: str | None = None,
         unless: str | None = None,
-        condition: str | None = None
+        condition: str | None = None,
+        facing_entity: str | None = None,
+        facing: Literal["eyes", "feet"] | None = None
     ):
         parts = ["execute"]
         if as_: parts.append(f"as {as_}")
@@ -148,6 +166,8 @@ class CommandBuilder:
         if if_: parts.append(f"if {if_}")
         if unless: parts.append(f"unless {unless}")
         if condition: parts.append(f"if {condition}")
+        if facing_entity:
+            parts.append(f"facing entity {facing_entity} {facing or 'eyes'}")
         parts.append('run')
         prefix = " ".join(parts)
         self._prefixes.append(prefix)

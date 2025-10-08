@@ -6,9 +6,10 @@ from .types.pack_format import PackFormat
 from .types.namespace import Namespace
 from .types.exceptions import InvalidPackFormat
 from .types.position import Position
-from .command import CommandBuilder
+from .command import CommandBuilder, Selector
 from .custom_item import CustomItem
 from .types.items import Item
+from .types.entity import Entity
 
 
 class DataPack:
