@@ -1,9 +1,12 @@
 from __future__ import annotations
 from datetime import timedelta
 from contextlib import contextmanager
-from typing import Literal, TYPE_CHECKING, overload
+from json import dumps
+from typing import Any, Literal, Sequence, TYPE_CHECKING, overload
 
 from .scoreboard_context import ScoreboardContext
+from .selector_context import SelectorContext
+from .condition import Condition, extract_or_groups
 from ..types.position import Coord
 if TYPE_CHECKING:
     from .types import AnyItem, AnyPos, AnyFunction
@@ -14,6 +17,7 @@ class CommandBuilder:
         self.commands: list[str] = []
         self._prefixes: list[str] = []
         self.scoreboard = ScoreboardContext(self)
+        self.me = SelectorContext(self)
 
     def __enter__(self) -> CommandBuilder:
         return self
@@ -33,8 +37,21 @@ class CommandBuilder:
         else:
             self.commands.append(line)
 
-    def tellraw(self, message: str, target: str = "@a") -> CommandBuilder:
-        self._add(f'tellraw {target} {{"text":"{message}"}}')
+    def tellraw(
+            self,
+            message: str | Sequence[dict[str, Any]],
+            target: str = "@a",
+            **style
+    ) -> CommandBuilder:
+        if isinstance(message, str):
+            component = {"text": message, **style}
+            json_message = dumps(component, ensure_ascii=False)
+        elif isinstance(message, (list, tuple)):
+            json_message = dumps(message, ensure_ascii=False)
+        else:
+            raise TypeError("message must be str or list[dict]")
+
+        self._add(f"tellraw {target} {json_message}")
         return self
 
     def say(self, message: str) -> CommandBuilder:
@@ -154,27 +171,70 @@ class CommandBuilder:
         self,
         as_: str | None = None,
         at: str | None = None,
-        if_: str | None = None,
-        unless: str | None = None,
-        condition: str | None = None,
+        if_: str | list[str] | None = None,
+        unless: str | list[str] | None = None,
         facing_entity: str | None = None,
-        facing: Literal["eyes", "feet"] | None = None
+        facing: Literal["eyes", "feet"] | None = 'eyes',
+        condition: Condition | None = None,
     ):
         parts = ["execute"]
-        if as_: parts.append(f"as {as_}")
-        if at: parts.append(f"at {at}")
-        if if_: parts.append(f"if {if_}")
-        if unless: parts.append(f"unless {unless}")
-        if condition: parts.append(f"if {condition}")
+
+        if as_:
+            parts.append(f"as {as_}")
+        if at:
+            parts.append(f"at {at}")
+
+        or_groups = []
+        tmp_prefixes = []
+
+        if condition is not None:
+            or_groups = extract_or_groups(condition)
+            for group in or_groups:
+                tmp_name = f"__chanty_tmp_or_{group.group_id}"
+                self._add(f"scoreboard objectives add {tmp_name} dummy")
+                self._add(f"scoreboard players set var {tmp_name} 0")
+
+                for sub in group.or_groups:
+                    for prefix, cond in sub.conditions:
+                        self._add(f"execute {prefix} {cond} run scoreboard players add var {tmp_name} 1")
+
+            execute_prefix = []
+            for group in or_groups:
+                execute_prefix.append(f"if score var __chanty_tmp_or_{group.group_id} matches 1..")
+            for prefix, cond in condition.conditions:
+                execute_prefix.append(f"{prefix} {cond}")
+            tmp_prefixes.append(" ".join(execute_prefix))
+
+        if if_:
+            if isinstance(if_, str):
+                tmp_prefixes.append(f"if {if_}")
+            else:
+                tmp_prefixes.append(" ".join([f"if {c}" for c in if_]))
+        if unless:
+            if isinstance(unless, str):
+                tmp_prefixes.append(f"unless {unless}")
+            else:
+                tmp_prefixes.append(" ".join([f"unless {c}" for c in unless]))
         if facing_entity:
-            parts.append(f"facing entity {facing_entity} {facing or 'eyes'}")
-        parts.append('run')
+            tmp_prefixes.append(f"facing entity {facing_entity} {facing}")
+
+        if tmp_prefixes:
+            parts.append(" ".join(tmp_prefixes))
+        parts.append("run")
+
         prefix = " ".join(parts)
         self._prefixes.append(prefix)
+
         try:
-            yield self
+            if as_:
+                yield SelectorContext(as_)
+            else:
+                yield None
         finally:
             self._prefixes.pop()
+            for group in or_groups:
+                tmp_name = f"__chanty_tmp_or_{group.group_id}"
+                self._add(f"scoreboard objectives remove {tmp_name}")
     
     def build(self) -> str:
         return '\n'.join(self.commands)

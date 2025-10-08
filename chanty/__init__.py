@@ -45,6 +45,9 @@ class DataPack:
     def register_namespace(self, namespace: Namespace):
         self.namespaces.append(namespace)
     
+    def unregister_namespace(self, namespace: Namespace):
+        self.namespaces.remove(namespace)
+    
     def _write(self, filename: str, data: str):
         with open(filename, 'w', encoding='utf-8') as f:
             f.write(data)

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "chanty"
-version = "0.1.1"
+version = "0.2.0"
 description = "Tool for creating cool Minecraft datapacks"
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -21,4 +21,13 @@ Source = "https://github.com/Ethosa/chanty"
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
-addopts = "-v"
+addopts = "-v -s"
+
+[tool.hatch.build.targets.sdist]
+include = ["chanty/**", "tests/**", "pyproject.toml"]
+
+[tool.hatch.build.targets.wheel]
+include = ["chanty/**"]
+
+[tool.hatch.scripts]
+chanty = "chanty.cli.main:main"

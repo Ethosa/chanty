@@ -1,4 +1,5 @@
-from typing import Callable
+from __future__ import annotations
+from typing import Callable, Any
 from json import dumps
 
 from .types.items import Item
@@ -11,15 +12,20 @@ class CustomItem:
     def __init__(
             self,
             item: str | Item,
-            nbt: dict = {}
+            nbt: dict = {},
+            custom_item_index: int | str | None = None
     ):
         global _CUSTOM_ITEM_INDEX
         self.item = item
         self._namespace = 'minecraft'
-        self._index = _CUSTOM_ITEM_INDEX
         self.nbt = nbt
-        self.nbt['minecraft:custom_data'] = {'custom_item_index': _CUSTOM_ITEM_INDEX}
-        _CUSTOM_ITEM_INDEX += 1
+        if custom_item_index is None:
+            self._index = _CUSTOM_ITEM_INDEX
+            self.nbt['minecraft:custom_data'] = {'custom_item_index': _CUSTOM_ITEM_INDEX}
+            _CUSTOM_ITEM_INDEX += 1
+        else:
+            self._index = custom_item_index
+            self.nbt['minecraft:custom_data'] = {'custom_item_index': custom_item_index}
 
         self._advancements = []
         self._handlers = {}
@@ -34,7 +40,29 @@ class CustomItem:
     def __delitem__(self, key):
         del self.nbt[key]
     
-    def consumable(self, consumable_seconds: int| None = None) -> 'CustomItem':
+    def set_name(self, name: str | dict[str, Any]) -> CustomItem:
+        if isinstance(name, str):
+            self.nbt['minecraft:custom_name'] = {"text": name, "italic": False}
+        else:
+            self.nbt['minecraft:custom_name'] = name
+        return self
+
+    def set_lore(self, *lines: str) -> CustomItem:
+        lore = [
+            {"text": line, "color": "gray", "italic": False} if isinstance(line, str) else line
+            for line in lines
+        ]
+        self.nbt['minecraft:lore'] = lore
+        return self
+    
+    def glint(self, enabled: bool = True) -> CustomItem:
+        if enabled:
+            self.nbt["minecraft:enchantment_glint_override"] = True
+        else:
+            self.nbt.pop("minecraft:enchantment_glint_override", None)
+        return self
+    
+    def consumable(self, consumable_seconds: int| None = None) -> CustomItem:
         self['minecraft:consumable'] = {}
         if consumable_seconds is not None:
             self['minecraft:consumable']['consume_seconds'] = consumable_seconds
@@ -51,8 +79,8 @@ class CustomItem:
                             'trigger': 'minecraft:consume_item',
                             'conditions': {
                                 'item': {
-                                    'items': [str(self.item)],
-                                    'nbt': '{custom_data:' + dumps(self.nbt["minecraft:custom_data"]) + '}',
+                                    'items': [self.item],
+                                    'components': self.nbt
                                 }
                             }
                         }
