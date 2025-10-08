@@ -100,7 +100,7 @@ if __name__ == '__main__':
 
 ## In The Future ...
 
-- [ ] Assets
-- [ ] Translations
-- [ ] More built-in event handlers
-- [ ] CLI improvement
+- Assets
+- Translations
+- More built-in event handlers
+- CLI improvement
