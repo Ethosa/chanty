@@ -1,12 +1,18 @@
 <div align="center">
 
 # Chanty
-### Tool for creating cool datapacks for Minecraft
+### Write Minecraft datapacks easely with Python
 
 </div>
 
 **chanty** is a Python DSL for writing Minecraft datapacks as if they were real code.  
 No more messy `.mcfunction` files - just cliean, structured logic.
+
+
+## Install
+```
+pip install chanty
+```
 
 
 ## Usage
