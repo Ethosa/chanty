@@ -10,6 +10,9 @@ from .command import CommandBuilder, Selector
 from .custom_item import CustomItem
 from .types.items import Item
 from .types.entity import Entity
+from .types.data.recipe import CookingRecipe, SmeltingRecipe, SmokingRecipe, CampfireRecipe, CraftingGrid, CraftingRecipe
+from .config import config
+from .logging import error, debug, info
 
 
 class DataPack:
@@ -42,24 +45,35 @@ class DataPack:
         }
         return result
     
-    def register_namespace(self, namespace: Namespace):
+    def register(self, namespace: Namespace):
         self.namespaces.append(namespace)
     
-    def unregister_namespace(self, namespace: Namespace):
+    def unregister(self, namespace: Namespace):
         self.namespaces.remove(namespace)
     
     def _write(self, filename: str, data: str):
         with open(filename, 'w', encoding='utf-8') as f:
             f.write(data)
     
-    def export(self, path: str | None = None):
+    def export(self, path: str | None = None, clean: bool = False):
         if path is None:
             path = f'./exported/{self.name}'
+        if os.path.exists(f'{path}/data') and clean:
+            info('clean old datapack version ...')
+            os.remove(f'{path}/data')
+            os.remove(f'{path}/assets')
+        
+        info('initialize folders ...')
         os.makedirs(path, exist_ok=True)
         os.makedirs(f'{path}/data', exist_ok=True)
-        os.makedirs(f'{path}/assets', exist_ok=True)
+        os.makedirs(f'{path}/assets/minecraft/models', exist_ok=True)
+        os.makedirs(f'{path}/assets/minecraft/textures', exist_ok=True)
+        os.makedirs(f'{path}/assets/minecraft/atlases', exist_ok=True)
 
+        info('export all namespaces ...')
         for namespace in self.namespaces:
             namespace.export(path)
 
+        info('export pack.mcmeta')
         self._write(f'{path}/pack.mcmeta', dumps(self.mcmeta, indent=2))
+        info('datapack exported successfully')

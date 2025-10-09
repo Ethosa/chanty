@@ -5,6 +5,7 @@ from typing import Callable
 from .data.recipe import Recipe
 from ..custom_item import CustomItem
 from ..command.builder import CommandBuilder
+from ..logging import error, debug, info
 
 
 class Namespace:
@@ -25,20 +26,22 @@ class Namespace:
 
         self._custom_items = []
 
-        self._onload_handler: Callable[[], str] | None = None
+        self._on_load_handler: Callable[[], str] | None = None
         self._every_tick_handler: Callable[[], str] | None = None
     
-    def onload(self, func: Callable[[], str]):
+    def on_load(self, func: Callable[[], str]):
         """
         Registers mcfunction for `load` event
         """
-        self._onload_handler = func
+        info(f'{self.name}: register {func.__name__}@on_load')
+        self._on_load_handler = func
         return func
 
     def every_tick(self, func: Callable[[], str]):
         """
         Registers mcfunction for `tick` event
         """
+        info(f'{self.name}: register {func.__name__}@every_tick')
         self._every_tick_handler = func
         return func
 
@@ -49,12 +52,14 @@ class Namespace:
         if isinstance(func_or_name, str):
             def decorator(func: Callable[[], str]):
                 func.id = f'{self.name}:{func_or_name}'
+                info(f'{self.name}: register {func_or_name}.mcfunction')
                 self.functions[func_or_name] = func
                 return func
             return decorator
         else:
             func_or_name.id = f'{self.name}:{func_or_name.__name__}'
             self.functions[func_or_name.__name__] = func_or_name
+            info(f'{self.name}: register {func_or_name.__name__}.mcfunction')
             return func_or_name
 
     def register(self, data: CustomItem | Recipe):
@@ -93,6 +98,7 @@ class Namespace:
         """
         Builds sources and creates folders with subfolders into datapack destionation.
         """
+        info(f'{self.name}: make folders')
         namespace_path = f'{path}/data/{self.name}'
         os.makedirs(f'{namespace_path}/recipe', exist_ok=True)
         os.makedirs(f'{namespace_path}/function', exist_ok=True)
@@ -101,6 +107,7 @@ class Namespace:
         
         # CUSTOM ITEMS
         for item in self._custom_items:
+            info(f'{self.name}: register CustomItem(#{item._index}, "{item.item}")')
             for registry in item._registries:
                 registry()
             for adv in item._advancements:
@@ -108,28 +115,29 @@ class Namespace:
                     f'{namespace_path}/advancement/{adv["id"]}.json',
                     dumps(adv["adv"], indent=2)
                 )
-            for _, val in item._handlers.items():
-                for handler in val:
-                    self._write(
-                        f'{namespace_path}/function/{handler["func_name"]}.mcfunction',
-                        handler["code"]
-                    )
+            for handler in item._handlers:
+                self._write(
+                    f'{namespace_path}/function/{handler["func_name"]}.mcfunction',
+                    handler["code"]
+                )
         
         # FUNCTIONS
         for key, func in self.functions.items():
+            info(f'{self.name}: register function("{key}.mcfunction")')
             self._write(f"{namespace_path}/function/{key}.mcfunction", func())
         
         # RECIPES
         for recipe in self.recipes:
+            info(f'{self.name}: register recipe("{recipe.id}.json")')
             self._write(f'{namespace_path}/recipe/{recipe.id}.json', dumps(recipe.to_json(), indent=2))
         
         # load/tick HANDLERS
         tags_path = f"{path}/data/minecraft/tags/function"
         os.makedirs(tags_path, exist_ok=True)
-        if self._onload_handler:
+        if self._on_load_handler:
             self._write(
                 f"{namespace_path}/function/load.mcfunction",
-                self._onload_handler()
+                self._on_load_handler()
             )
             self._append_tag(f"{tags_path}/load.json", f"{self.name}:load")
         if self._every_tick_handler:

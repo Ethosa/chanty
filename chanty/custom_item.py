@@ -5,30 +5,32 @@ from json import dumps
 from .types.items import Item
 
 
-_CUSTOM_ITEM_INDEX = 0
-
-
 class CustomItem:
+    _CUSTOM_ITEM_INDEX: int = 0
     def __init__(
             self,
             item: str | Item,
-            nbt: dict = {},
+            nbt: dict | None = None,
             custom_item_index: int | str | None = None
     ):
-        global _CUSTOM_ITEM_INDEX
+        if nbt is None:
+            nbt = {}
+
         self.item = item
         self._namespace = 'minecraft'
         self.nbt = nbt
+        self._callback_index = 0
+
         if custom_item_index is None:
-            self._index = _CUSTOM_ITEM_INDEX
-            self.nbt['minecraft:custom_data'] = {'custom_item_index': _CUSTOM_ITEM_INDEX}
-            _CUSTOM_ITEM_INDEX += 1
+            self._index = CustomItem._CUSTOM_ITEM_INDEX
+            self.nbt['minecraft:custom_data'] = {'custom_item_index': str(CustomItem._CUSTOM_ITEM_INDEX)}
+            CustomItem._CUSTOM_ITEM_INDEX += 1
         else:
             self._index = custom_item_index
-            self.nbt['minecraft:custom_data'] = {'custom_item_index': custom_item_index}
+            self.nbt['minecraft:custom_data'] = {'custom_item_index': str(custom_item_index)}
 
         self._advancements = []
-        self._handlers = {}
+        self._handlers = []
         self._registries = []
     
     def __setitem__(self, key, value):
@@ -70,7 +72,8 @@ class CustomItem:
     
     def on_right_click(self, func: Callable[[], str]):
         def decorator():
-            id = f'on_custom_item_{self._index}_right_click'
+            id = f'on_custom_item_{self._index}_{self._callback_index}_right_click'
+            self._callback_index += 1
             self._advancements.append({
                 'id': id,
                 'adv': {
@@ -96,10 +99,9 @@ class CustomItem:
                 'sound': {'sound_id': ''},
                 'animation': 'none',
             }
-            if 'on_right_click' not in self._handlers:
-                self._handlers['on_right_click'] = []
-            self._handlers['on_right_click'].append({
+            self._handlers.append({
                 'func_name': id,
+                'action': 'on_right_click',
                 'code': f'advancement revoke @s only {self._namespace}:{id}' + '\n' + func() 
             })
         self._registries.append(decorator)

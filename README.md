@@ -57,8 +57,8 @@ from chanty import Datapack, Namespace, CommandBuilder
 pack = DataPack('my_awesome_datapack')
 namespace = Namespace('main')
 
-@namespace.onload
-def handle_onload() -> str:
+@namespace.on_load
+def handle_on_load() -> str:
     with CommandBuilder() as cmd:
         cmd.tellraw('Hello world from chanty datapack!')
     return cmd.build()

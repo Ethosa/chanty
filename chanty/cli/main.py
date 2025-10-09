@@ -10,6 +10,7 @@ from ..command.builder import CommandBuilder
 from ..command.condition import Unless
 from ..custom_item import CustomItem, Item
 from .. import DataPack
+from ..config import config
 from .utils import get_project_name, get_world_folder
 from .logging import console, success, info, error
 
@@ -19,10 +20,10 @@ PROJECT_TEMPLATE = {
 
 pack = DataPack('{name}')
 namespace = Namespace('main')
-pack.register_namespace(namespace)
+pack.register(namespace)
 
 
-@namespace.onload
+@namespace.on_load
 def handle_on_load() -> str:
     with CommandBuilder() as cmd:
         cmd.tellraw("Hello from your Chanty project <3")
@@ -76,10 +77,11 @@ def _export_module(
     info(f"Building datapack ...")
     module = __import__(module_name)
     pack = getattr(module, pack_name)
+    module.CustomItem._CUSTOM_ITEM_INDEX = 0
 
     if dev:
         dev_env = Namespace('dev_environment')
-        pack.register_namespace(dev_env)
+        pack.register(dev_env)
 
         chanty_debug = CustomItem(Item.STICK, custom_item_index='chanty_debug_stick')
         chanty_debug.set_name('§6§l[Chanty]§f§r Debugger')
@@ -95,7 +97,7 @@ def _export_module(
             return cmd.build()
         dev_env.register(chanty_debug)
         
-        @dev_env.onload
+        @dev_env.on_load
         def handle_on_load():
             with CommandBuilder() as cmd:
                 if file_path:
@@ -109,14 +111,14 @@ def _export_module(
                         {"text": "[Chanty] ", "color": "aqua", "bold": True},
                         {"text": "datapacks reloaded", "color": "gray"}
                     ])
-                    with cmd.context(as_='@p') as me:
-                        with cmd.context(condition=Unless(me.inventory.has_in_hotbar(chanty_debug)) & Unless(me.inventory.has_in_inventory(chanty_debug))):
-                            cmd.give('@p', chanty_debug)
+                with cmd.context(as_='@p') as me:
+                    with cmd.context(condition=Unless(me.inventory.has_in_hotbar(chanty_debug)) & Unless(me.inventory.has_in_inventory(chanty_debug))):
+                        cmd.give('@p', chanty_debug)
             return cmd.build()
     
     datapack_folder = f'{save_folder}/datapacks/{pack.name}'
     info(f"Exporting to [cyan]{datapack_folder}[/cyan]")
-    pack.export(datapack_folder)
+    pack.export(datapack_folder, clean=not dev)
 
 
 def dev(
@@ -192,6 +194,8 @@ def main(argv: list[str] | None = None):
     create_parser = subparsers.add_parser("create", help="Create a new Chanty project")
     create_parser.add_argument("name", type=str, help="Project name")
     create_parser.set_defaults(func=lambda args: create_project(args.name))
+    create_parser.add_argument("--debug", action="store_true", help="Enables debug mode and rich logging")
+    create_parser.add_argument("--verbose", action="store_true", help="Verbose output")
 
     # --- build ---
     build_parser = subparsers.add_parser("build", help="Build a datapack")
@@ -201,17 +205,21 @@ def main(argv: list[str] | None = None):
     build_parser.add_argument("--save_folder", type=Path, help="%APPDATA%/Roaming/.minecraft/saves/your_world/datapacks")
     build_parser.add_argument("--world_name", type=Path, help="your_world")
     build_parser.add_argument("--modrinth", type=Path, help="your_profile:your_world")
+    build_parser.add_argument("--debug", action="store_true", help="Enables debug mode and rich logging")
+    build_parser.add_argument("--verbose", action="store_true", help="Verbose output")
     build_parser.set_defaults(func=lambda args: build_datapack(
         args.target, args.output, args.to, args.save_folder, args.world_name, args.modrinth
     ))
 
     # --- dev ---
-    build_parser = subparsers.add_parser("dev", help="Start datapack development mode")
-    build_parser.add_argument("target", type=str, help="Target pack, e.g., main:pack")
-    build_parser.add_argument("--save_folder", type=Path, help="%APPDATA%/Roaming/.minecraft/saves/your_world/datapacks")
-    build_parser.add_argument("--world_name", type=Path, help="your_world")
-    build_parser.add_argument("--modrinth", type=Path, help="your_profile:your_world")
-    build_parser.set_defaults(func=lambda args: dev(args.target, args.save_folder, args.world_name, args.modrinth))
+    dev_parser = subparsers.add_parser("dev", help="Start datapack development mode")
+    dev_parser.add_argument("target", type=str, help="Target pack, e.g., main:pack")
+    dev_parser.add_argument("--save_folder", type=Path, help="%APPDATA%/Roaming/.minecraft/saves/your_world/datapacks")
+    dev_parser.add_argument("--world_name", type=Path, help="your_world")
+    dev_parser.add_argument("--modrinth", type=Path, help="your_profile:your_world")
+    dev_parser.add_argument("--debug", action="store_true", help="Enables debug mode and rich logging")
+    dev_parser.add_argument("--verbose", action="store_true", help="Verbose output")
+    dev_parser.set_defaults(func=lambda args: dev(args.target, args.save_folder, args.world_name, args.modrinth))
 
 
     args = parser.parse_args(argv)
