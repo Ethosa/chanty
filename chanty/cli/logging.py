@@ -23,4 +23,4 @@ def success(text: str):
 
 
 def error(text: str):
-    log.exception(f'[bold][red]{text}[/red][/bold]', extra={"markup": True})
+    log.error(f'[bold][red]{text}[/red][/bold]', extra={"markup": True})

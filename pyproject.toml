@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "chanty"
-version = "0.2.1"
+version = "0.3.0"
 description = "Tool for creating cool Minecraft datapacks"
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -23,11 +23,11 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 addopts = "-v -s"
 
-[tool.hatch.build.targets.sdist]
+[tool.hatchling.build.targets.sdist]
 include = ["chanty/**", "tests/**", "pyproject.toml"]
 
-[tool.hatch.build.targets.wheel]
+[tool.hatchling.build.targets.wheel]
 include = ["chanty/**"]
 
-[tool.hatch.scripts]
+[tool.hatchling.scripts]
 chanty = "chanty.cli.main:main"

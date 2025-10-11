@@ -2,8 +2,8 @@ import os
 from json import dumps, loads, JSONDecodeError
 from typing import Callable
 
-from .data.recipe import Recipe
-from ..custom_item import CustomItem
+from .recipe import Recipe
+from .custom_item import CustomItem
 from ..command.builder import CommandBuilder
 from ..logging import error, debug, info
 

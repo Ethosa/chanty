@@ -2,7 +2,8 @@ from __future__ import annotations
 from typing import Callable, Any
 from json import dumps
 
-from .types.items import Item
+from .items import Item
+from .custom_model import CustomModel
 
 
 class CustomItem:
@@ -69,6 +70,10 @@ class CustomItem:
         if consumable_seconds is not None:
             self['minecraft:consumable']['consume_seconds'] = consumable_seconds
         return self
+
+    def set_model(self, model: str | CustomModel) -> CustomItem:
+        self.nbt["minecraft:item_model"] = str(model)
+        return self
     
     def on_right_click(self, func: Callable[[], str]):
         def decorator():
@@ -102,7 +107,10 @@ class CustomItem:
             self._handlers.append({
                 'func_name': id,
                 'action': 'on_right_click',
-                'code': f'advancement revoke @s only {self._namespace}:{id}' + '\n' + func() 
+                'code': (
+                    f'advancement revoke @s only {self._namespace}:{id}'
+                    '\n' + func()
+                ) 
             })
         self._registries.append(decorator)
     

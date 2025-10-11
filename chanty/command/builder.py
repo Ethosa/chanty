@@ -7,6 +7,7 @@ from typing import Any, Literal, Sequence, TYPE_CHECKING, overload
 from .scoreboard_context import ScoreboardContext
 from .selector_context import SelectorContext
 from .condition import Condition, extract_or_groups
+from .random import Random
 from ..types.position import Coord
 if TYPE_CHECKING:
     from .types import AnyItem, AnyPos, AnyFunction
@@ -36,6 +37,13 @@ class CommandBuilder:
             self.commands.append(f"{full_prefix} {line}")
         else:
             self.commands.append(line)
+
+    def raw(self, line: str) -> CommandBuilder:
+        """
+        Executes raw command
+        """
+        self._add(line)
+        return self
 
     def tellraw(
             self,
@@ -67,7 +75,11 @@ class CommandBuilder:
     def set_block(self, block: AnyItem, *args) -> CommandBuilder:
         if len(args) == 1:
             pos = args[0]
-            self._add(f'setblock {" ".join(pos)} {str(block)}')
+            if isinstance(pos, Random):
+                with pos.build(self):
+                    self._add(f"execute as {pos.target} at @s run setblock ~ ~ ~ {block}")
+            else:
+                self._add(f'setblock {" ".join(pos)} {str(block)}')
         elif len(args) == 3:
             x, y, z = args
             self._add(f'setblock {x} {y} {z} {block}')
@@ -129,9 +141,17 @@ class CommandBuilder:
             facing: Literal['feet', 'eyes'] = 'eyes'
     ) -> CommandBuilder:
         if facing_entity:
-            self._add(f'tp {target} {" ".join(pos)} facing entity {facing_entity} {facing}')
+            if isinstance(pos, Random):
+                with pos.build(self):
+                    self._add(f"execute as {pos.target} at @s run tp ~ ~ ~ facing entity {facing_entity} {facing}")
+            else:
+                self._add(f'tp {target} {" ".join(pos)} facing entity {facing_entity} {facing}')
         else:
-            self._add(f'tp {target} {" ".join(pos)}')
+            if isinstance(pos, Random):
+                with pos.build(self):
+                    self._add(f"execute as {pos.target} at @s run tp ~ ~ ~")
+            else:
+                self._add(f'tp {target} {" ".join(pos)}')
         return self
 
     def rotate(self, target: str, pos: AnyPos | str) -> CommandBuilder:
@@ -142,7 +162,11 @@ class CommandBuilder:
         return self
 
     def summon(self, entity: str, pos: AnyPos) -> CommandBuilder:
-        self._add(f'summon {entity} {" ".join(pos)}')
+        if isinstance(pos, Random):
+            with pos.build(self):
+                self._add(f"execute as {pos.target} at @s run summon {entity} ~ ~ ~")
+        else:
+            self._add(f"summon {entity} {' '.join(pos)}")
         return self
 
     def call(self, target: AnyFunction) -> CommandBuilder:

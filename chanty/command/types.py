@@ -3,10 +3,11 @@ from typing import Iterable, Union, Callable, TYPE_CHECKING
 
 from ..types.items import Item
 from ..types.position import Position
-from ..custom_item import CustomItem
+from ..types.custom_item import CustomItem
+from .random import Random
 import chanty.command.builder as builder
 
 
-AnyPos = Union[Iterable[str | int], Position]
+AnyPos = Union[Iterable[str | int], Position, Random]
 AnyItem = Union[str, Item, CustomItem]
 AnyFunction = Union[str, Callable[[], Union[str, builder.CommandBuilder]]]

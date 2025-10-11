@@ -25,27 +25,45 @@ cd test-project
 ```
 
 ### Build Datapack
+You should use
+```shell
+chanty build MAIN_FILE:PACK_VARIABLE --ARGS
+```
+
 for default `.minecraft` folder destionation:
 ```shell
-chanty build --world_name="New World"
+chanty build main:pack --world_name="New World"
 ```
 
 for ModrinthApp:
 ```shell
-chanty build --modrinth="ProfileName:New World"
+chanty build main:pack --modrinth="ProfileName:New World"
 ```
 
 for other destination:
 ```shell
-chanty build --to="./builds/datapack"
+chanty build main:pack --to="./builds/datapack"
 ```
 
 
 export to `./builds/<datapack_name>` folder:
 ```shell
-chanty build --output="./builds"
+chanty build main:pack --output="./builds"
 ```
 
+
+### Development Mode
+You can start `dev` mode to export your datapack in live mode after any `.py` file changes.  
+
+There are `--save_folder`, `--world_name` and `--modrinth` arguments.
+
+```shell
+chanty dev main:pack --modrinth="ProfileName:New World"
+```
+
+
+### Up Project
+After changing `chanty` version you can use `chanty up` to sync your project structure with actual `chanty` version
 
 
 ## Usage

@@ -3,7 +3,7 @@ from datetime import timedelta
 from enum import Enum
 from typing import Any
 
-from ..items import Item
+from .items import Item
 
 
 class Recipe(ABC):
