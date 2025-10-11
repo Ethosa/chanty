@@ -25,37 +25,37 @@ cd test-project
 ```
 
 ### Build Datapack
-You should use
+To build and export your datapack, use:
 ```shell
 chanty build MAIN_FILE:PACK_VARIABLE --ARGS
 ```
 
-for default `.minecraft` folder destionation:
+Exporting to the default .minecraft saves folder:
 ```shell
 chanty build main:pack --world_name="New World"
 ```
 
-for ModrinthApp:
+Exporting to Modrinth App:
 ```shell
 chanty build main:pack --modrinth="ProfileName:New World"
 ```
 
-for other destination:
+Exporting to a custom destination:
 ```shell
 chanty build main:pack --to="./builds/datapack"
 ```
 
 
-export to `./builds/<datapack_name>` folder:
+Exporting to a `./builds/<datapack_name>` folder:
 ```shell
 chanty build main:pack --output="./builds"
 ```
 
 
 ### Development Mode
-You can start `dev` mode to export your datapack in live mode after any `.py` file changes.  
+You can start the `dev` mode to automatically re-export your datapack every time any `.py` file changes. 
 
-There are `--save_folder`, `--world_name` and `--modrinth` arguments.
+Supported arguments: `--save_folder`, `--world_name`, and `--modrinth`.
 
 ```shell
 chanty dev main:pack --modrinth="ProfileName:New World"
@@ -63,7 +63,11 @@ chanty dev main:pack --modrinth="ProfileName:New World"
 
 
 ### Up Project
-After changing `chanty` version you can use `chanty up` to sync your project structure with actual `chanty` version
+After updating your Chanty version, use:
+```shell
+chanty up
+```
+to synchronize your project structure with the latest Chanty template.
 
 
 ## Usage
@@ -118,7 +122,7 @@ if __name__ == '__main__':
 
 ## In The Future ...
 
-- Assets
-- Translations
-- More built-in event handlers
-- CLI improvement
+- Asset management
+- Translation system
+- More built-in event hooks
+- CLI improvements
