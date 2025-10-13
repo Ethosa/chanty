@@ -9,6 +9,7 @@ from ..logging import info, error, success, console
 
 PROJECT_TEMPLATE = {
     "main.py": '''from chanty import DataPack, Namespace, CommandBuilder
+import src.translations
 
 pack = DataPack('{name}')
 namespace = Namespace('main')
@@ -24,6 +25,13 @@ def handle_on_load() -> str:
 
 if __name__ == "__main__":
     pack.export('./exported/{name}')
+''',
+    "src/translations.py": '''from chanty import Translations
+
+Translations.add('test_translation', {{
+    'en_us': 'Test Translation',
+    'ru_ru': 'Тестовый Перевод',
+}})
 ''',
     "requirements.txt": "chanty>=0.1.1\n",
     "README.md": "# {name}\n### Made with Chanty <3\n",
@@ -68,6 +76,8 @@ def create_project(name: str):
     assets_atlases_folder.mkdir(parents=True)
     for filename, content in PROJECT_TEMPLATE.items():
         file_path = project_path / filename
+        if '/' in filename:
+            file_path.parent.mkdir(parents=True)
         content = content.format(name=name, project_name=name)
         file_path.write_text(content, encoding="utf-8")
         info(f"Created [green]{filename}[/green]")

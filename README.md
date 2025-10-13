@@ -9,6 +9,20 @@
 No more messy `.mcfunction` files - just cliean, structured logic.
 
 
+## Features
+
+- **Pythonic Datapack Development**
+  Write Minecraft datapack using real Python code instead of raw `.mcfunction` files.
+- **Command Builder API**
+  Generate complex Minecraft commands (`execute`, `summon`, `scoreboard`, etc.) programmatically and dynamically.
+- **Custom Item System**
+  Create fully functional custom items with names, lore, events and NBT attributes - all in code.
+- **Hot Reloading**
+  Automatically rebuild and export your dapatack whenever a Python file changes (you still should to use `/reload` command in game).
+- **Automatic Resourcepack Exporting**
+  Export resourcepaks as ready-to-import `.zip` archives.
+
+
 ## Install
 ```shell
 pip install chanty
@@ -123,6 +137,6 @@ if __name__ == '__main__':
 ## In The Future ...
 
 - Asset management
-- Translation system
+- Achievements
 - More built-in event hooks
 - CLI improvements

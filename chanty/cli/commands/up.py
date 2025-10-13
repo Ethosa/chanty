@@ -29,6 +29,8 @@ def up_project():
     created_files = 0
     for filename, content in PROJECT_TEMPLATE.items():
         file_path = current_folder / filename
+        if '/' in filename:
+            file_path.parent.mkdir(parents=True)
         if not file_path.exists():
             content = content.format(name=project_name, project_name=project_name)
             file_path.write_text(content, encoding="utf-8")

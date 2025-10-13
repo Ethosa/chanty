@@ -5,6 +5,8 @@ from json import dumps
 from .items import Item
 from .custom_model import CustomModel
 
+from .translations import Translations
+
 
 class CustomItem:
     _CUSTOM_ITEM_INDEX: int = 0
@@ -34,25 +36,36 @@ class CustomItem:
         self._handlers = []
         self._registries = []
     
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: str, value: Any):
         self.nbt[key] = value
     
-    def __getitem__(self, key):
+    def __getitem__(self, key: str):
         return self.nbt[key]
     
-    def __delitem__(self, key):
+    def __delitem__(self, key: str):
         del self.nbt[key]
     
     def set_name(self, name: str | dict[str, Any]) -> CustomItem:
         if isinstance(name, str):
-            self.nbt['minecraft:custom_name'] = {"text": name, "italic": False}
+            if Translations.has_key(name):
+                self.nbt['minecraft:custom_name'] = {"translate": Translations.get_str(name), "italic": False}
+            else:
+                self.nbt['minecraft:custom_name'] = {"text": name, "italic": False}
         else:
-            self.nbt['minecraft:custom_name'] = name
+            self.nbt['minecraft:custom_name'] = Translations.translate(name)
         return self
 
     def set_lore(self, *lines: str) -> CustomItem:
         lore = [
-            {"text": line, "color": "gray", "italic": False} if isinstance(line, str) else line
+            {
+                "translate": Translations.get_str(line),
+                "color": "gray",
+                "italic": False
+            } if Translations.has_key(line) else {
+                "text": line,
+                "color": "gray",
+                "italic": False
+            } if isinstance(line, str) else line
             for line in lines
         ]
         self.nbt['minecraft:lore'] = lore

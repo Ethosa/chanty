@@ -16,6 +16,7 @@ from .types.custom_model import CustomModel, ItemModelType
 from .types.items import Item
 from .types.entity import Entity
 from .types.recipe import CookingRecipe, SmeltingRecipe, SmokingRecipe, CampfireRecipe, CraftingGrid, CraftingRecipe
+from .types.translations import Translations
 from .config import config
 from .logging import debug, info
 
@@ -94,6 +95,19 @@ class DataPack:
                             zipf.writestr(zip_name.replace("\\", "/"), f.read())
             else:
                 info("no assets found, skipping resource pack assets")
+            
+            if Translations._entries:
+                info("exporting translations ...")
+                langs: dict[str, dict[str, str]] = {}
+
+                for key, lang_map in Translations._entries.items():
+                    for lang, text in lang_map.items():
+                        langs.setdefault(lang, {})[key] = text
+                
+                for lang, entries in langs.items():
+                    lang_path = f"assets/{self.name}/lang/{lang}.json"
+                    zipf.writestr(lang_path, dumps(entries, ensure_ascii=False, indent=2))
+                    debug(f'added {lang_path} ({len(entries)} entries)')
 
         os.makedirs(os.path.dirname(zip_path), exist_ok=True)
         with open(zip_path, "wb") as f:
