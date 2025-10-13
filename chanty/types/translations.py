@@ -10,7 +10,7 @@ class Translations:
 
     @classmethod
     def add(cls, key: str, translations: Dict[str, str]):
-        cls._entries[key.replace('PRJ', cls._project_name)] = translations
+        cls._entries[key.format(project=cls._project_name)] = translations
 
     @classmethod
     def get(cls, key: str, lang: str = "en_us") -> str:

@@ -28,7 +28,9 @@ if __name__ == "__main__":
 ''',
     "src/translations.py": '''from chanty import Translations
 
-Translations.add('test_translation', {{
+# {{project}} will automatically replaced with your project name
+# item.{{project}}.test_translation -> item.{name}.test_translation
+Translations.add('item.{{project}}.test_translation', {{
     'en_us': 'Test Translation',
     'ru_ru': 'Тестовый Перевод',
 }})
@@ -59,6 +61,7 @@ packages = ["{name}"]
 
 
 def create_project(name: str):
+    name = name.replace('-', '_').replace(' ', '_')
     project_path = Path(name)
     assets_textures_folder = Path(name) / 'assets' / name / 'textures' / 'item'
     assets_models_folder = Path(name) / 'assets' / name / 'models' / 'item'

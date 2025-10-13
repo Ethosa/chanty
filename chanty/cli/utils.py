@@ -8,6 +8,7 @@ from ..types.namespace import Namespace
 from ..command.builder import CommandBuilder
 from ..command.condition import Unless
 from ..types.custom_item import CustomItem, Item
+from ..types.translations import Translations
 from .. import DataPack
 
 
@@ -81,10 +82,22 @@ def export_module(
         pack.register(dev_env)
 
         chanty_debug = CustomItem(Item.STICK, custom_item_index='chanty_debug_stick')
+        Translations.add('item.{project}.chanty_debugger', {
+            'en_us': '§6§l[Chanty]§f§r Debugger',
+            'ru_ru': '§6§l[Chanty]§f§r Отладчик',
+        })
+        Translations.add('item.{project}.chanty_debugger_lore_line1', {
+            'en_us': 'Usage:',
+            'ru_ru': 'Использование:',
+        })
+        Translations.add('item.{project}.chanty_debugger_lore_line2', {
+            'en_us': '  §a§l[Right Click]§r: reload datapacks',
+            'ru_ru': '  §a§l[ПКМ]§r: Перезагрузить датапаки',
+        })
         chanty_debug.set_name('§6§l[Chanty]§f§r Debugger')
         chanty_debug.set_lore(
-            'This is a not just stick ...',
-            'This is a §6§l[Chanty]§f§r Debugger!',
+            'Usage:',
+            '  §a§l[Right Click]§r: reload datapacks',
         )
         chanty_debug.glint(True)
         @chanty_debug.on_right_click

@@ -52,7 +52,7 @@ class CustomItem:
             else:
                 self.nbt['minecraft:custom_name'] = {"text": name, "italic": False}
         else:
-            self.nbt['minecraft:custom_name'] = Translations.translate(name)
+            self.nbt['minecraft:custom_name'] = name
         return self
 
     def set_lore(self, *lines: str) -> CustomItem:
